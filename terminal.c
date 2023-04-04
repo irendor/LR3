@@ -1,29 +1,24 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-int main() {
-    // char stroke[256];
-    // scanf("%s", stroke);
-    // if (strstr(stroke, "ls") != NULL) {
-    //     if (fork() == 0)
-    //         wait(0);
-    //     else
-    //         execlp("/bin/ls", "ls", (char *)NULL);
-    // }
-    // if (strstr(stroke, "cat") != NULL) {
-    //     char *filename = strstr(stroke, "cat") + 4;
-    //     if (fork() == 0)
-    //         wait(0);
-    //     else
-    //         execlp("/bin/cat", "cat", *filename, (char *)NULL);
-    // }
+void onCtrlC() {
+    printf("Остановка программы...\n");
+    system("ps -e");
+    printf("Введите идентификатор процесса, который нужно остановить: ");
+    pid_t pid;
+    scanf("%d", &pid);
+    kill(pid, SIGTERM);
+    exit(0);
+}
 
+int main() {
     char command[256];
     char *args[3];
-
+    signal(SIGINT, onCtrlC);
     while (1) {
         printf("Введите команду: ");
         fgets(command, 256, stdin);
@@ -46,16 +41,13 @@ int main() {
 
         pid_t pid = fork();
         if (pid == 0) {
-            // Дочерний процесс
             execvp(args[0], args);
             printf("Ошибка при запуске процесса\n");
             exit(EXIT_FAILURE);
         } else if (pid < 0) {
-            // Ошибка при создании процесса
             printf("Ошибка при создании процесса\n");
             exit(EXIT_FAILURE);
         } else {
-            // Родительский процесс
             wait(NULL);
             printf("\n");
         }
